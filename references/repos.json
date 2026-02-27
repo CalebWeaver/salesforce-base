@@ -1,0 +1,30 @@
+{
+  "repos": [
+    {
+      "name": "NebulaLogger",
+      "url": "https://github.com/jongpie/NebulaLogger.git",
+      "branch": "main",
+      "description": "Enterprise logging framework - install as package, reference for patterns",
+      "installMethod": "package",
+      "packageInstall": {
+        "unlocked": "sf package install --wait 20 --security-type AdminsOnly --package 04tg70000001IMHAA2",
+        "managed": "sf package install --wait 30 --security-type AdminsOnly --package 04tg70000000r5xAAA"
+      },
+      "referencePaths": [
+        "nebula-logger/core/main/logger-engine/classes/",
+        "nebula-logger/core/main/log-management/"
+      ]
+    },
+    {
+      "name": "UniversalMock",
+      "url": "https://github.com/surajp/universalmock.git",
+      "branch": "master",
+      "description": "Universal mocking class for Apex tests - copy into projects",
+      "installMethod": "copy",
+      "copyPaths": [
+        "force-app/main/default/classes/UniversalMocker.cls",
+        "force-app/main/default/classes/UniversalMocker.cls-meta.xml"
+      ]
+    }
+  ]
+}

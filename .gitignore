@@ -1,0 +1,55 @@
+# Salesforce
+.sfdx/
+.sf/
+.localdevserver/
+deploy-options.json
+
+# Salesforce Local Development
+.lintCache
+.apextestresults
+illuminated/
+
+# LWC
+**/.eslintcache
+**/lwc/__tests__/jest-mocks/
+
+# Node
+node_modules/
+package-lock.json
+npm-debug.log*
+
+# IDE
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Reference repos (cloned on demand)
+references/*/
+!references/.gitignore
+!references/README.md
+!references/repos.json

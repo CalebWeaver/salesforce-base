@@ -1,0 +1,5 @@
+# Ignore cloned reference repos (they're fetched on demand)
+*/
+!.gitignore
+!README.md
+!repos.json
