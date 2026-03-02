@@ -46,7 +46,33 @@ Ready-to-copy Apex classes:
 |----------|---------|
 | `TriggerHandler.cls` | Base class for trigger handlers with enable/disable support |
 | `SecurityEnforcer.cls` | Utility for CRUD/FLS checks and `stripInaccessible` |
-| `SecurityEnforcerTest.cls` | Test coverage for SecurityEnforcer |
+| `MockSObjectBuilder.cls` | Build mock SObjects with read-only fields, formulas, and relationships |
+| `DataAccessor.cls` | Base class for abstracting SOQL queries for testability |
+| `SecurityEnforcerTest.cls` | Test patterns using MockSObjectBuilder and DataAccessor |
+
+#### Testing Patterns
+
+**MockSObjectBuilder** - Create test data without DML for formula fields and relationships:
+```apex
+Account mockAccount = (Account) new MockSObjectBuilder(Account.SObjectType)
+    .setField('Name', 'Acme Inc.')
+    .setField('AnnualRevenue', '1000000')  // Can set any field
+    .setId()
+    .setParent('Owner', mockUser)
+    .setChildren('Contacts', mockContacts)
+    .build();
+```
+
+**DataAccessor** - Abstract queries for dependency injection:
+```apex
+// Production: real queries
+AccountService service = new AccountService();
+
+// Test: inject mock accessor with UniversalMocker
+UniversalMocker mock = UniversalMocker.mock(AccountDataAccessor.class);
+mock.when('getActiveAccounts').thenReturn(mockAccounts);
+AccountService service = new AccountService((AccountDataAccessor) mock.createStub());
+```
 
 ### Reference Repositories (`references/`)
 
