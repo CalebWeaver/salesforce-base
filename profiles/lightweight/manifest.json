@@ -1,0 +1,33 @@
+{
+  "profile": "lightweight",
+  "displayName": "Lightweight",
+  "description": "Minimal framework for small projects. Uses simple TriggerHandler, SecurityEnforcer, and test data framework without heavyweight patterns like FFLib.",
+  "templates": {
+    "copy": [
+      "templates/salesforce/classes/TriggerHandler.cls",
+      "templates/salesforce/classes/TriggerHandler.cls-meta.xml",
+      "templates/salesforce/classes/SecurityEnforcer.cls",
+      "templates/salesforce/classes/SecurityEnforcer.cls-meta.xml",
+      "templates/salesforce/classes/MockSObjectBuilder.cls",
+      "templates/salesforce/classes/MockSObjectBuilder.cls-meta.xml",
+      "templates/salesforce/classes/DataAccessor.cls",
+      "templates/salesforce/classes/DataAccessor.cls-meta.xml",
+      "templates/salesforce/classes/SecurityEnforcerTest.cls",
+      "templates/salesforce/classes/SecurityEnforcerTest.cls-meta.xml",
+      "templates/salesforce/classes/testsupport/",
+      "templates/salesforce/classes/lightweight/"
+    ]
+  },
+  "references": {
+    "required": ["UniversalMock"],
+    "optional": []
+  },
+  "rules": {
+    "base": "profiles/base/rules-base.md",
+    "overlay": "profiles/lightweight/rules-overlay.md"
+  },
+  "cursorRules": {
+    "base": "profiles/base/cursor-base.mdc",
+    "overlay": "profiles/lightweight/cursor-overlay.mdc"
+  }
+}

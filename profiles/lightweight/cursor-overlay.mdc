@@ -1,0 +1,47 @@
+---
+description: Lightweight Salesforce architecture - simple trigger handlers, no FFLib
+alwaysApply: true
+---
+
+# Lightweight Architecture
+
+## Trigger Handler Pattern
+
+One trigger per object, handler extends `TriggerHandler` base class. Logic lives directly in handlers.
+
+```apex
+trigger AccountTrigger on Account (before insert, before update, after insert, after update) {
+    new AccountTriggerHandler().run();
+}
+
+public class AccountTriggerHandler extends TriggerHandler {
+    protected override void beforeInsert() {
+        // Logic directly in handler
+    }
+}
+```
+
+## Guidelines
+
+- No service layer required - logic in handlers or utility classes
+- No domain layer - validation in trigger handlers
+- No selector layer - SOQL in handlers or query helpers
+- Keep it flat - avoid unnecessary abstraction
+- Extract to utility class only when handler exceeds ~200 lines
+- Don't create fflib_* classes or UnitOfWork patterns
+
+## Async
+- Async classes are standalone — query and DML directly, no service layer
+- Enqueue from trigger handlers
+
+## Configuration
+- Query CMDTs directly with `getAll()`, cache in static variables
+- Use `System.Label.My_Label` for user-facing text
+- Use `My_Settings__c.getInstance()` for per-user overrides
+- Keep it simple — a static utility at most, no selector pattern for config
+
+## LWC
+- Controllers are simple `@AuraEnabled` Apex classes — no service layer delegation
+- Business logic can live directly in the controller for small components
+- Use `WITH SECURITY_ENFORCED` in controller SOQL
+- Reference `references/lwc-patterns.md` for full patterns

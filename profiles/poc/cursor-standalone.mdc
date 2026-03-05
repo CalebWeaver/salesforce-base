@@ -1,0 +1,62 @@
+---
+description: POC/Demo Salesforce standards - LWC-first, speed over hardening, visual demos
+alwaysApply: true
+---
+
+# POC / Demo Salesforce Standards
+
+## Enforced Rules
+
+- Governor limits / bulkification — a POC that hits limits during a demo is a failed demo
+- No SOQL in loops
+- Never hardcode Salesforce IDs
+- Create `-meta.xml` files
+
+## What's Relaxed
+
+- **No `with sharing` requirement** — use `without sharing` freely, scratch orgs have one user
+- **No `WITH SECURITY_ENFORCED`** — skip it, causes permission errors in unconfigured scratch orgs
+- **No SecurityEnforcer** — skip entirely
+- **No permission sets** — assign permissions directly in scratch org
+- **No tests** — deploy with `--test-level NoTestRun`
+- **No triggers unless needed** — skip if the demo is UI-only
+- **Hardcoded config is OK** — extract to CMDT/Labels only for demo-visible values
+- **Simple error handling** — `try/catch` or direct DML
+- **System.debug() is fine** — no logging framework
+
+## LWC-First Development
+
+1. Use `lightning-record-*-form` before writing custom Apex (zero-Apex CRUD)
+2. LWC with `@wire` + `cacheable=true` for read-only views
+3. LWC with imperative Apex for actions (button clicks, saves)
+4. Triggers only when demo requires backend automation
+5. Static resources with JSON for mock data when demo is UI-only
+
+## Controller Pattern
+
+- Controllers do everything — query, process, DML in `@AuraEnabled` methods
+- No service/selector/domain layers
+- `without sharing` is fine
+- Skip `WITH SECURITY_ENFORCED` on queries
+
+## Naming
+
+Prefix POC classes with a short project tag (e.g., `FR_CaseController`) for easy identification and cleanup.
+
+## Deployment
+
+```bash
+sf project deploy start --source-dir force-app --test-level NoTestRun
+```
+
+## AI Agent Reminders
+
+1. LWC first — build UI before Apex, use `lightning-record-*-form` before custom components
+2. Never hardcode Salesforce IDs
+3. Skip triggers unless demo needs backend automation
+4. Use POC prefix consistently
+5. Avoid SOQL in loops
+6. Create meta.xml files for every class/trigger
+7. Deploy with `--test-level NoTestRun`
+8. Skip security enforcement — no `WITH SECURITY_ENFORCED`, no `with sharing`
+9. Use static JSON for mock data when demo is UI-only

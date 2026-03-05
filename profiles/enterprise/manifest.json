@@ -1,0 +1,31 @@
+{
+  "profile": "enterprise",
+  "displayName": "Enterprise (FFLib)",
+  "description": "Full enterprise architecture using FFLib Apex Common and FFLib Apex Mocks. Includes Unit of Work, Selector, Service, and Domain layers on top of base templates.",
+  "templates": {
+    "copy": [
+      "templates/salesforce/classes/SecurityEnforcer.cls",
+      "templates/salesforce/classes/SecurityEnforcer.cls-meta.xml",
+      "templates/salesforce/classes/MockSObjectBuilder.cls",
+      "templates/salesforce/classes/MockSObjectBuilder.cls-meta.xml",
+      "templates/salesforce/classes/DataAccessor.cls",
+      "templates/salesforce/classes/DataAccessor.cls-meta.xml",
+      "templates/salesforce/classes/SecurityEnforcerTest.cls",
+      "templates/salesforce/classes/SecurityEnforcerTest.cls-meta.xml",
+      "templates/salesforce/classes/testsupport/",
+      "templates/salesforce/classes/enterprise/"
+    ]
+  },
+  "references": {
+    "required": ["UniversalMock", "fflib-apex-common", "fflib-apex-mocks", "NebulaLogger"],
+    "optional": []
+  },
+  "rules": {
+    "base": "profiles/base/rules-base.md",
+    "overlay": "profiles/enterprise/rules-overlay.md"
+  },
+  "cursorRules": {
+    "base": "profiles/base/cursor-base.mdc",
+    "overlay": "profiles/enterprise/cursor-overlay.mdc"
+  }
+}

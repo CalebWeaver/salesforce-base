@@ -1,0 +1,77 @@
+---
+description: Enterprise Salesforce architecture - FFLib Domain-Service-Selector-UnitOfWork pattern
+alwaysApply: true
+---
+
+# Enterprise Architecture (FFLib)
+
+## Required Layers
+
+All features must follow Domain-Service-Selector-UnitOfWork pattern.
+
+### Triggers → Domain
+```apex
+trigger AccountTrigger on Account (...) {
+    fflib_SObjectDomain.triggerHandler(Accounts.class);
+}
+```
+
+### Domain (validation + field defaults)
+- Plural object name: `Accounts`, `Opportunities`
+- Extends `fflib_SObjectDomain`
+- Inner `Constructor` class implementing `IConstructable`
+
+### Selector (all SOQL)
+- `AccountsSelector extends fflib_SObjectSelector`
+- Never write inline SOQL outside selectors
+- Use `newQueryFactory()` for dynamic queries
+
+### Service (business logic + orchestration)
+- `AccountService` implements `IAccountService`
+- Only layer that uses Unit of Work for DML
+
+### Application Factory
+- Register all bindings in `Application.cls`
+- UnitOfWork, Selector, Domain, Service factories
+
+## Testing with FFLib
+- Use `fflib_ApexMocks` for layer isolation
+- Mock selectors, UoW, and services via `Application.*.setMock()`
+- Use `Application.UnitOfWork.newInstance()` for test data DML — not TestDataGraph
+
+## Logging
+- Use NebulaLogger instead of `System.debug()` — `Logger.info()`, `Logger.error()`, etc.
+- Always call `Logger.saveLog()` to persist
+- Use `.addTag('FeatureName')` for log categorization
+- Reference `references/NebulaLogger/` for patterns
+
+## References
+- `references/fflib-apex-common/` for base classes
+- `references/fflib-apex-mocks/` for test mocking
+- `references/NebulaLogger/` for logging patterns
+
+## Async
+- Async classes delegate to Service methods — no direct SOQL/DML
+- Enqueue from Services or Domains, never from Selectors
+
+## LWC
+- Controllers are thin wrappers — one-line delegation to Service or Selector
+- Read operations (`cacheable=true`) call Selectors directly
+- Write operations call Service methods
+- Never put business logic in the controller
+- Reference `references/lwc-patterns.md` for full patterns
+
+## Configuration
+- Access CMDTs through dedicated selectors (e.g., `AppConfigSelector`) registered in `Application.cls`
+- Use `newInstance()` factory pattern — keeps config mockable in tests
+- Template: `AppConfigSelector.cls` in `templates/salesforce/classes/enterprise/`
+- One selector per CMDT domain (config, feature flags, integrations, mappings)
+- Never query CMDTs inline — always go through a selector
+
+## Rules
+- No SOQL outside Selectors
+- No DML outside Unit of Work — including test setup
+- No inline CMDT queries — use config selectors
+- Business logic in Services, not Domains
+- Don't skip Service layer for "simple" operations
+- Don't use lightweight TriggerHandler - use fflib_SObjectDomain

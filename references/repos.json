@@ -5,6 +5,8 @@
       "url": "https://github.com/jongpie/NebulaLogger.git",
       "branch": "main",
       "description": "Enterprise logging framework - install as package, reference for patterns",
+      "profiles": ["enterprise"],
+      "optional": false,
       "installMethod": "package",
       "packageInstall": {
         "unlocked": "sf package install --wait 20 --security-type AdminsOnly --package 04tg70000001IMHAA2",
@@ -20,10 +22,42 @@
       "url": "https://github.com/surajp/universalmock.git",
       "branch": "master",
       "description": "Universal mocking class for Apex tests - copy into projects",
+      "profiles": ["lightweight", "enterprise"],
+      "optional": false,
       "installMethod": "copy",
       "copyPaths": [
         "force-app/main/default/classes/UniversalMocker.cls",
         "force-app/main/default/classes/UniversalMocker.cls-meta.xml"
+      ]
+    },
+    {
+      "name": "fflib-apex-common",
+      "url": "https://github.com/apex-enterprise-patterns/fflib-apex-common.git",
+      "branch": "master",
+      "description": "FFLib Apex Common - Enterprise patterns (Domain, Selector, Service, UnitOfWork)",
+      "profiles": ["enterprise"],
+      "optional": false,
+      "installMethod": "package",
+      "packageInstall": {
+        "unlocked": "sf package install --wait 20 --security-type AdminsOnly --package 04t6S000001IhOQQA0"
+      },
+      "referencePaths": [
+        "sfdx-source/apex-common/main/classes/"
+      ]
+    },
+    {
+      "name": "fflib-apex-mocks",
+      "url": "https://github.com/apex-enterprise-patterns/fflib-apex-mocks.git",
+      "branch": "master",
+      "description": "FFLib Apex Mocks - Enterprise test mocking framework",
+      "profiles": ["enterprise"],
+      "optional": false,
+      "installMethod": "package",
+      "packageInstall": {
+        "unlocked": "sf package install --wait 20 --security-type AdminsOnly --package 04t6S000001IhObQAK"
+      },
+      "referencePaths": [
+        "sfdx-source/apex-mocks/main/classes/"
       ]
     }
   ]

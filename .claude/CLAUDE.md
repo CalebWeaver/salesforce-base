@@ -1,140 +1,117 @@
-# Salesforce Development Standards
+# Aimpoint Salesforce Baseline
 
-## Governor Limits - Design for Bulk
+This is a **project initializer**, not a Salesforce project. It generates Salesforce projects with pre-configured AI agent guidance, templates, and reference repos.
 
-Salesforce enforces strict limits per transaction. Always bulkify code, absolutely no queries in loops.
+## What This Repo Does
 
-## Trigger Handler Pattern
+`scripts/init-project.sh` creates new Salesforce projects by assembling CLAUDE.md, Cursor rules, Apex templates, and reference configurations based on a chosen profile. The output is a ready-to-develop SFDX project in a separate directory.
 
-Never put logic directly in triggers. One trigger per object, use a shared base handler class.
+## Project Structure
 
-**Base class**: Check for existing `TriggerHandler` in project. If none exists, copy from `templates/salesforce/classes/TriggerHandler.cls`
-
-## SOQL Best Practices
-
-```apex
-// ✅ Only needed fields, filtered, with relationship queries
-List<Account> accounts = [
-    SELECT Id, Name, (SELECT Id, FirstName FROM Contacts)
-    FROM Account 
-    WHERE Id IN :accountIds
-    WITH SECURITY_ENFORCED
-];
+```
+profiles/           AI rules and manifests, organized by profile
+  base/             Shared rules composed into lightweight + enterprise
+  lightweight/      Simple trigger handler architecture
+  enterprise/       FFLib Domain-Service-Selector-UoW architecture
+  poc/              Standalone POC/demo rules (not composed from base)
+templates/          Apex classes copied into target projects
+  salesforce/classes/
+    enterprise/     Enterprise-only templates (Application.cls, etc.)
+    testsupport/    Test data framework (builders, fixtures, TestDataGraph)
+references/         Reference repos config + implementation pattern files
+  patterns/         Apex code examples organized by profile
+  repos.json        External repo definitions (NebulaLogger, FFLib, etc.)
+scripts/            Shell scripts for init and reference syncing
 ```
 
-- Always use WHERE clauses and LIMIT when appropriate
-- Use `WITH SECURITY_ENFORCED` to respect FLS
-- Filter on indexed fields (standard, ExternalId, unique)
+## Profile System
 
-## Security - CRUD/FLS Enforcement
+There are three profiles: `poc`, `lightweight`, and `enterprise`.
 
-**Utility class**: Check for existing `SecurityEnforcer` in project. If none exists, copy from `templates/salesforce/classes/SecurityEnforcer.cls`
+**Composed profiles** (lightweight, enterprise): The init script concatenates `profiles/base/rules-base.md` + `profiles/{profile}/rules-overlay.md` to produce the target project's CLAUDE.md. Same for Cursor rules. This means shared standards live in `base/` and profile-specific patterns live in the overlay.
 
-```apex
-// Check permissions before operations
-SecurityEnforcer.checkReadable(Account.SObjectType, new List<SObjectField>{Account.Name});
-SecurityEnforcer.checkCreatable(Account.SObjectType, new List<SObjectField>{Account.Name});
+**Standalone profile** (poc): The init script copies `profiles/poc/rules-standalone.md` directly — no composition with base. POC is too different from development profiles to share a base. The manifest has `"standalone": true` to signal this.
 
-// Strip inaccessible fields for DML
-List<Account> safeRecords = (List<Account>) SecurityEnforcer.stripInaccessible(AccessType.CREATABLE, accounts);
-insert safeRecords;
+### Manifests
 
-// Boolean checks for conditional logic
-if (SecurityEnforcer.isUpdateable(Account.SObjectType)) { /* update */ }
-```
+Each profile has a `manifest.json` that controls what gets copied to target projects: which template files, which reference repos (required vs optional), and which rules files. The init script reads the manifest to drive all assembly decisions.
 
-Use `with sharing` by default, `without sharing` only when explicitly necessary.
+### How to Tell If a Profile Is Standalone
 
-## Test Classes (75% Coverage Required)
+Check `manifest.json` for the `"standalone": true` key. If present, the profile uses `rules.standalone` and `cursorRules.standalone` paths instead of `rules.base`/`rules.overlay`.
 
-- Use `@TestSetup` for common data, `Test.startTest()/stopTest()` to reset limits
-- Test bulk (200+ records), positive, negative, and boundary cases
-- Never use `seeAllData=true`; create isolated test data
-- Use `UniversalMocker` for mocking dependencies if available (see `references/UniversalMock/`)
+## Rules Files
 
-## Sandbox Deployment Workflow
+Rules files are the AI agent instructions that get assembled into the target project's `.claude/CLAUDE.md` and `.cursor/rules/salesforce-development.mdc`.
 
-```bash
-# Retrieve current metadata first
-sf project retrieve start --metadata ApexClass:MyClass
+**Important conventions:**
 
-# Validate before deploying
-sf project deploy start --source-dir force-app --dry-run
+- Keep rules files lean — describe patterns and point to `references/patterns/` for code examples rather than embedding Apex code blocks inline. This way the LLM only loads implementation details when it goes to implement a specific pattern.
+- Bash deployment commands are OK to keep inline since they're short and frequently referenced.
+- Cursor rules (`.mdc`) are more condensed than CLAUDE.md rules — small inline code snippets (under ~10 lines) are acceptable because cursor rules are `alwaysApply: true` and always loaded.
+- Tables and decision flows are fine in rules files — they're compact and convey a lot of information.
 
-# Deploy with tests
-sf project deploy start --source-dir force-app --test-level RunLocalTests
-```
+## Reference Pattern Files
 
-## Creating Custom Objects and Fields
+`references/patterns/{base|lightweight|enterprise|poc}/` contains Apex code examples that the rules files point to. These exist so AI agents only pull implementation details into context when needed.
 
-When creating a custom object, **always create an accompanying permission set** and add it to the Admin permission set group.
+When adding a new pattern file:
+1. Create it in the appropriate profile subdirectory under `references/patterns/`
+2. Add a pointer in the corresponding rules file: `See references/patterns/{profile}/{filename}.md for examples.`
+3. If the pattern applies to composed profiles, put it in `references/patterns/base/` and reference it from `profiles/base/rules-base.md`
 
-**Required steps for new custom objects:**
-1. Create the object metadata
-2. Create a permission set granting CRUD access to the object
-3. Add the permission set to the Admin PSG (and other relevant PSGs)
+Shared reference docs (`references/async-patterns.md`, `references/lwc-patterns.md`) are top-level in `references/` and available to all composed profiles.
 
-For examples of how to structure Salesforce permission sets and permission set groups, see the official Salesforce documentation:
+## Templates
 
-- [Salesforce Metadata API: PermissionSet](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_permissionset.htm)
-- [Salesforce Metadata API: PermissionSetGroup](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_permissionsetgroup.htm)
+Apex classes in `templates/salesforce/classes/` are copied into target projects. Each `.cls` file must have a corresponding `-meta.xml` file.
 
-Follow these resources for XML examples and full schema when creating permission set and permission set group metadata files.
-When adding fields to existing objects, add field permissions to the relevant permission sets.
+The manifest's `templates.copy` array lists exactly which files/directories to copy for each profile. When adding a new template class:
+1. Create both the `.cls` and `.cls-meta.xml` files
+2. Add the paths to the appropriate profile manifest(s)
 
-## Async Processing
+## Init Script (`scripts/init-project.sh`)
 
-- **Queueable**: Chaining jobs, complex processing
-- **Batch Apex**: Large volumes (millions of records)
-- **Scheduled Apex**: Recurring jobs
-- **Platform Events**: Event-driven architecture
+The init script supports both interactive and non-interactive (CLI flags) modes. Key functions:
 
-## Error Handling
+- `assemble_claude_md()` — checks manifest for `standalone` key, then either copies standalone file or concatenates base + overlay
+- `assemble_cursor_rules()` — same logic for Cursor `.mdc` files, strips YAML frontmatter from overlays before appending
+- `copy_templates()` — reads `templates.copy` from manifest
+- `setup_references()` — filters `repos.json` by profile, copies shared reference docs and profile-appropriate pattern files
+- `scaffold_sfdx_project()` — runs `sf project generate` if Salesforce CLI is available
 
-```apex
-List<Database.SaveResult> results = Database.insert(accounts, false);
-for (Integer i = 0; i < results.size(); i++) {
-    if (!results[i].isSuccess()) {
-        for (Database.Error err : results[i].getErrors()) {
-            System.debug(LoggingLevel.ERROR, 'Error: ' + err.getMessage());
-        }
-    }
-}
-```
+When modifying the init script, test all three profiles: `--profile poc`, `--profile lightweight`, `--profile enterprise`.
 
-## Logging
+## Editing Guidelines
 
-Use [NebulaLogger](https://github.com/jongpie/NebulaLogger) for enterprise logging instead of `System.debug()`.
+### Changing Shared Standards
 
-**Install**: See `references/repos.json` for package install commands.
+If a standard applies to both lightweight and enterprise (but not POC), edit `profiles/base/rules-base.md` and `profiles/base/cursor-base.mdc`. Changes automatically flow into both composed profiles.
 
-```apex
-Logger.error('Error message', record).addTag('MyFeature');
-Logger.warn('Warning message');
-Logger.info('Info message');
-Logger.debug('Debug message');
-Logger.saveLog();
-```
+### Changing Profile-Specific Standards
 
-NebulaLogger provides: persistent logs in `Log__c`/`LogEntry__c`, tagging, Flow support, LWC support, and log retention policies.
+Edit the overlay file for that profile (`profiles/{profile}/rules-overlay.md`). For POC, edit `profiles/poc/rules-standalone.md` — remember it's self-contained and doesn't inherit from base.
 
-## Project Resources
+### Adding a New Profile
 
-- **Templates**: `templates/salesforce/classes/` - Base classes (TriggerHandler, SecurityEnforcer)
-- **References**: `references/` - Cloned repo structures (see `repos.json`, run `scripts/sync-references.sh`)
-- **NebulaLogger**: Reference `references/NebulaLogger/` for logging patterns after syncing
+1. Create `profiles/{name}/manifest.json` — set `"standalone": true` if it shouldn't compose from base
+2. Create rules and cursor files (overlay or standalone depending on manifest)
+3. Create pattern files in `references/patterns/{name}/` if the profile needs code examples
+4. Add the profile option to `init-project.sh` in both the interactive menu and `--profile` validation
+5. Update the README
 
-When starting a new project, check references for established patterns before creating new structures.
+### Updating the README
 
-## AI Agent Reminders
+The README is currently out of date — it only describes lightweight and enterprise, not POC. It also doesn't mention the `references/patterns/` directory or the standalone profile concept. Update it when making structural changes.
 
-1. **Never hardcode Salesforce IDs** - IDs differ between orgs
-2. **Check for existing patterns** - Look for handlers, utilities, test factories in project and `references/`
-3. **Respect naming conventions** - Follow project's existing patterns
-4. **Avoid SOQL in loops** - Most common governor limit violation
-5. **Create meta.xml files** - Every Apex class/trigger needs corresponding `-meta.xml`
-6. **Use Database methods** - Prefer `Database.insert(records, false)` for partial success
-7. **Test data isolation** - Tests create own data, never rely on org data
-8. **Retrieve before modify** - Always get current state before making changes
-9. **New objects need permission sets** - Create permission set and add to Admin PSG
-10. **Use templates and references** - Copy from `templates/` and `references/` before creating from scratch
+## Gotchas
+
+- `references/.gitignore` ignores `*/` to exclude cloned repos, with explicit exceptions for `patterns/` and `patterns/**`. If you add a new tracked subdirectory under `references/`, add a negation rule.
+- The `.claude/CLAUDE.md` and `.cursor/rules/salesforce-development.mdc` at the repo root are for *this* baseline project, not templates. The template rules live under `profiles/`.
+- POC standalone files must be fully self-contained — they don't get any content from base.
+- Cursor overlay frontmatter (`---` YAML block) is stripped by `sed` during composition. Don't put content before the closing `---` that you want included.
+- The init script copies itself into target projects (`scripts/init-project.sh`) so users can re-run it.
+
+## Dependencies
+
+The init script requires `jq` for JSON parsing and optionally `sf` (Salesforce CLI) for SFDX project scaffolding. Both are checked at startup with user-friendly error messages.

@@ -57,6 +57,64 @@ Use `with sharing` by default, `without sharing` only when explicitly necessary.
 - Never use `seeAllData=true`; create isolated test data
 - Use `UniversalMocker` for mocking dependencies if available (see `references/UniversalMock/`)
 
+## Salesforce Test Data Standard
+
+Use the two-layer test data framework from `templates/salesforce/classes/testsupport/`:
+
+### Layer 1: Fluent Builders
+- One builder per SObject type (e.g., `AccountBuilder`, `ContactBuilder`)
+- **Valid-by-default**: Required fields are auto-populated with unique values
+- **NO DML, NO queries**: Builders only set fields on in-memory records
+- Use `TestIds.nextSuffix()` for unique names/external IDs
+
+```apex
+Account acc = new AccountBuilder()
+    .withName('Acme Corp')
+    .withIndustry('Technology')
+    .build();  // Returns uninserted Account
+```
+
+### Layer 2: TestDataGraph
+- **ALL DML happens here** via `commit()`
+- Handles relationship wiring and insert ordering automatically
+- Register records, declare relationships, then commit once
+
+```apex
+TestDataGraph graph = new TestDataGraph();
+Account acc = new AccountBuilder().build();
+Contact con = new ContactBuilder().build();
+
+graph.register(acc);
+graph.register(con);
+graph.relate(con, Contact.AccountId, acc);
+graph.commit();  // Inserts in correct order, wires AccountId
+```
+
+### Scenario Fixtures
+- Name fixtures by **business state**, not object graphs
+- Good: `CustomerFixture.createCustomerWithPrimaryContact()`
+- Bad: `createAccountWithOppWithLineItemsWithContacts()`
+- Return result objects with all created records and IDs
+
+```apex
+CustomerFixture.Result result = CustomerFixture.createCustomerWithPrimaryContact();
+System.assertEquals(result.accountId, result.primaryContact.AccountId);
+```
+
+### When to Use What
+| Scenario | Approach |
+|----------|----------|
+| Simple single-object test | Builder + `insert` directly |
+| Multi-object with relationships | Builders + TestDataGraph |
+| Common business scenarios | Scenario Fixtures |
+| Mocking without DML | MockSObjectBuilder (for formula fields, read-only) |
+
+### Adding New Objects
+1. Create a builder in `testsupport/builders/` extending `BaseFluentBuilder`
+2. Set sensible defaults in `applyDefaults()`
+3. Add fluent methods for commonly-used fields
+4. If needed, add a scenario fixture in the profile's fixtures directory (`lightweight/fixtures/` or `enterprise/fixtures/`)
+
 ## Sandbox Deployment Workflow
 
 ```bash

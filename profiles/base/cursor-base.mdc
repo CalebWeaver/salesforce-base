@@ -1,0 +1,117 @@
+---
+description: Salesforce development standards for AI agents - Apex, SOQL, triggers, testing, and deployment
+alwaysApply: true
+---
+
+# Salesforce Development Standards
+
+## Governor Limits - Design for Bulk
+
+Salesforce enforces strict limits per transaction. Always bulkify code, absolutely no queries in loops.
+
+## SOQL Best Practices
+
+```apex
+// ✅ Only needed fields, filtered, with relationship queries
+List<Account> accounts = [
+    SELECT Id, Name, (SELECT Id, FirstName FROM Contacts)
+    FROM Account
+    WHERE Id IN :accountIds
+    WITH SECURITY_ENFORCED
+];
+```
+
+- Always use WHERE clauses and LIMIT when appropriate
+- Use `WITH SECURITY_ENFORCED` to respect FLS
+- Filter on indexed fields (standard, ExternalId, unique)
+
+## Security - CRUD/FLS Enforcement
+
+**Utility class**: Check for existing `SecurityEnforcer` in project. If none exists, copy from `templates/salesforce/classes/SecurityEnforcer.cls`
+
+```apex
+SecurityEnforcer.checkReadable(Account.SObjectType, new List<SObjectField>{Account.Name});
+SecurityEnforcer.checkCreatable(Account.SObjectType, new List<SObjectField>{Account.Name});
+List<Account> safeRecords = (List<Account>) SecurityEnforcer.stripInaccessible(AccessType.CREATABLE, accounts);
+insert safeRecords;
+if (SecurityEnforcer.isUpdateable(Account.SObjectType)) { /* update */ }
+```
+
+Use `with sharing` by default, `without sharing` only when explicitly necessary.
+
+## Test Classes (85% Coverage Required)
+
+- Write tests alongside code — sandbox deployments enforce the 85% coverage gate
+- Use `@TestSetup` for common data, `Test.startTest()/stopTest()` to reset limits
+- Test bulk (200+ records), positive, negative, and boundary cases
+- Never use `seeAllData=true`; create isolated test data
+- Use `UniversalMocker` for mocking dependencies if available (see `references/UniversalMock/`)
+
+## Salesforce Test Data Standard
+
+### Fluent Builders (all profiles)
+- One builder per SObject type extending `BaseFluentBuilder` in `testsupport/builders/`
+- Valid-by-default with `TestIds.nextSuffix()` for unique values
+- NO DML, NO queries in builders
+
+### DML Layer (profile-specific)
+- **Lightweight**: `TestDataGraph` — register records, declare relationships, commit once
+- **Enterprise**: `Application.UnitOfWork.newInstance()` — same pattern as production code
+
+### Scenario Fixtures
+- Name by business state, not object graphs
+- Return result objects with all created records and IDs
+- Fixtures use the profile's DML layer internally
+
+## Sandbox Deployment Workflow
+
+```bash
+sf project retrieve start --metadata ApexClass:MyClass
+sf project deploy start --source-dir force-app --dry-run
+sf project deploy start --source-dir force-app --test-level RunLocalTests
+```
+
+## Creating Custom Objects and Fields
+
+Always create an accompanying permission set and add it to the Admin PSG.
+
+## Async Processing
+
+- **Queueable**: Complex processing, chaining, callouts (prefer over Future)
+- **Batch Apex**: Large volumes (thousands to millions of records)
+- **Scheduled Apex**: Recurring jobs (thin — just kick off Batch/Queueable)
+- **Platform Events**: Event-driven, decoupled publishers/subscribers
+- Always implement `Database.AllowsCallouts` for HTTP; never enqueue from loops
+- See `references/async-patterns.md` for detailed examples
+
+## Error Handling
+
+Use `Database.insert(records, false)` for partial success and iterate `Database.SaveResult` for errors.
+
+## Logging
+
+Use `System.debug()` with appropriate `LoggingLevel`. See profile-specific rules for enterprise logging options.
+
+## Configuration Strategy
+
+Never hardcode configurable values. Use the right mechanism:
+- **Custom Metadata Types**: Admin-managed rules, feature flags, mappings, thresholds (deployable, zero-SOQL via `getAll()`)
+- **Custom Labels**: User-facing translatable text (error messages, email subjects, UI text)
+- **Custom Settings (Hierarchy)**: Per-user/profile runtime overrides (debug mode, bypass flags)
+- **Custom Objects**: End-user-managed data needing full CRUD UI (pricing, routing rules)
+
+Never hardcode: URLs, endpoints, thresholds, error messages, picklist values in branching logic.
+See profile-specific rules for configuration access patterns.
+
+## AI Agent Reminders
+
+1. Never hardcode Salesforce IDs
+2. Check for existing patterns in project and `references/`
+3. Respect naming conventions
+4. Avoid SOQL in loops
+5. Create meta.xml files for every class/trigger
+6. Use Database methods for partial success
+7. Test data isolation - never rely on org data
+8. Retrieve before modify
+9. New objects need permission sets
+10. Use templates and references before creating from scratch
