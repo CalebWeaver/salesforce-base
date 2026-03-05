@@ -14,7 +14,8 @@ profiles/           AI rules and manifests, organized by profile
   lightweight/      Simple trigger handler architecture
   enterprise/       FFLib Domain-Service-Selector-UoW architecture
   poc/              Standalone POC/demo rules (not composed from base)
-templates/          Apex classes copied into target projects
+templates/          Apex classes and docs copied into target projects
+  docs/             Project documentation templates (architecture.md, modules/)
   salesforce/classes/
     enterprise/     Enterprise-only templates (Application.cls, etc.)
     testsupport/    Test data framework (builders, fixtures, TestDataGraph)
@@ -70,6 +71,17 @@ The manifest's `templates.copy` array lists exactly which files/directories to c
 1. Create both the `.cls` and `.cls-meta.xml` files
 2. Add the paths to the appropriate profile manifest(s)
 
+## Project Documentation Templates
+
+`templates/docs/` contains starter documentation that gets scaffolded into every target project's `docs/` directory:
+
+- `templates/docs/architecture.md` — Template with commented sections for project overview, org topology, data model, integrations, and architectural decisions
+- `templates/docs/modules/README.md` — Instructions and an example for per-module documentation files
+
+The init script copies these into `docs/` in the target project. The rules files (both base and POC standalone) include a "Project Documentation" section pointing agents to `docs/` and reminders to keep docs current.
+
+The docs are designed to be the source of truth for project-specific context that AI agents need — architecture, module boundaries, integration details — as opposed to the CLAUDE.md which covers *how* to write Salesforce code (patterns, conventions, standards).
+
 ## Init Script (`scripts/init-project.sh`)
 
 The init script supports both interactive and non-interactive (CLI flags) modes. Key functions:
@@ -78,6 +90,7 @@ The init script supports both interactive and non-interactive (CLI flags) modes.
 - `assemble_cursor_rules()` — same logic for Cursor `.mdc` files, strips YAML frontmatter from overlays before appending
 - `copy_templates()` — reads `templates.copy` from manifest
 - `setup_references()` — filters `repos.json` by profile, copies shared reference docs and profile-appropriate pattern files
+- `scaffold_docs()` — copies `templates/docs/` into the target project's `docs/` directory (skips existing files)
 - `scaffold_sfdx_project()` — runs `sf project generate` if Salesforce CLI is available
 
 When modifying the init script, test all three profiles: `--profile poc`, `--profile lightweight`, `--profile enterprise`.

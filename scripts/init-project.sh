@@ -398,6 +398,32 @@ copy_scripts() {
     print_done "Copied init-project.sh"
 }
 
+# ─── Scaffold docs ──────────────────────────────────────────────
+scaffold_docs() {
+    print_step "Scaffolding project documentation"
+
+    local docs_dir="$TARGET_DIR/docs"
+    local modules_dir="$docs_dir/modules"
+
+    mkdir -p "$modules_dir"
+
+    # Copy architecture template if it doesn't already exist
+    if [ ! -f "$docs_dir/architecture.md" ]; then
+        cp "$ROOT_DIR/templates/docs/architecture.md" "$docs_dir/architecture.md"
+        print_done "Created docs/architecture.md"
+    else
+        print_info "docs/architecture.md already exists — skipping"
+    fi
+
+    # Copy modules README if it doesn't already exist
+    if [ ! -f "$modules_dir/README.md" ]; then
+        cp "$ROOT_DIR/templates/docs/modules/README.md" "$modules_dir/README.md"
+        print_done "Created docs/modules/README.md"
+    else
+        print_info "docs/modules/README.md already exists — skipping"
+    fi
+}
+
 # ─── Copy .gitignore ────────────────────────────────────────────
 copy_gitignore() {
     local gitignore_template="$ROOT_DIR/templates/gitignore"
@@ -542,6 +568,7 @@ main() {
     copy_templates
     setup_references
     copy_scripts
+    scaffold_docs
     copy_gitignore
     write_profile_marker
     print_summary

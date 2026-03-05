@@ -86,6 +86,15 @@ See `references/patterns/poc/demo-data-seed.md` for script examples. Run with: `
 
 Prefix POC-specific classes with a short project tag (e.g., `FR_RoutingEngine`, `FR_CaseController`) to make cleanup easy later. This makes it trivial to identify and remove POC code if it doesn't move forward, or to find everything that needs hardening if it does.
 
+## Project Documentation
+
+Project-specific context lives in `docs/`. Check these before working in an unfamiliar area.
+
+- **`docs/architecture.md`** — Project overview, data model, integrations, key decisions
+- **`docs/modules/`** — One file per module describing purpose, key classes, and objects
+
+Keep docs lightweight for POCs — a few sentences per section is fine. The goal is enough context that an agent (or another developer) can pick up where you left off.
+
 ## AI Agent Reminders
 
 1. **Never hardcode Salesforce IDs** - IDs differ between orgs
@@ -99,6 +108,7 @@ Prefix POC-specific classes with a short project tag (e.g., `FR_RoutingEngine`, 
 9. **Skip security enforcement** - No `WITH SECURITY_ENFORCED`, no `SecurityEnforcer`, no `with sharing` requirements
 10. **Static resources for mock data** - If the demo is UI-only, skip Apex and use static JSON
 11. **Read pattern files before implementing** - Check `references/patterns/poc/` for examples before writing code
+12. **Check project docs** - Read `docs/architecture.md` before working in an unfamiliar area
 
 ## Promotion Checklist
 

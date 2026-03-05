@@ -127,6 +127,15 @@ Use `Database.insert(records, false)` for partial success and iterate `Database.
 
 See `references/patterns/base/error-handling.md` for code examples.
 
+## Project Documentation
+
+Project-specific context lives in `docs/` — always check these before making architectural decisions or working in an unfamiliar area of the codebase.
+
+- **`docs/architecture.md`** — Project-level architecture: org topology, data model, integrations, and key architectural decisions. Read this first when joining a project or before making cross-cutting changes.
+- **`docs/modules/`** — One file per major module or domain area (e.g., `case-routing.md`, `billing.md`). Describes the module's purpose, key classes, custom objects, automation, and testing notes. Read the relevant module doc before modifying code in that area.
+
+**Keeping docs current**: When you make a significant change — new module, new integration, architectural decision — update the relevant doc. If a module doc doesn't exist yet for the area you're working in, create one.
+
 ## Project Resources
 
 - **Templates**: `templates/salesforce/classes/` - Base classes and utilities
@@ -149,3 +158,5 @@ When starting a new project, check references for established patterns before cr
 10. **Use templates and references** - Copy from `templates/` and `references/` before creating from scratch
 11. **Never hardcode configurable values** - Use Custom Metadata Types, Custom Labels, or Custom Settings per the Configuration Strategy section
 12. **Read pattern files before implementing** - Check `references/patterns/` for the implementation pattern before writing code
+13. **Check project docs first** - Read `docs/architecture.md` and the relevant `docs/modules/` file before working in an unfamiliar area
+14. **Update docs when making significant changes** - New modules, integrations, or architectural decisions should be documented in `docs/`
