@@ -73,7 +73,7 @@ sf project deploy start --source-dir force-app --test-level RunLocalTests
 
 ## Creating Custom Objects and Fields
 
-Always create an accompanying permission set and add it to the Admin PSG.
+Always create an accompanying permission set and add it to the Admin PSG. Assign new permission sets to the running user: `sf org assign permset --name <PermSetApiName>`. When adding fields to existing objects, add field permissions to the relevant permission sets.
 
 ## Async Processing
 

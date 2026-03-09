@@ -61,13 +61,17 @@ When creating a custom object, **always create an accompanying permission set** 
 1. Create the object metadata
 2. Create a permission set granting CRUD access to the object
 3. Add the permission set to the Admin PSG (and other relevant PSGs)
+4. Assign the new permission set to the running user so fields are immediately visible:
+```bash
+sf org assign permset --name <PermSetApiName>
+```
 
 For examples of how to structure Salesforce permission sets and permission set groups, see the official Salesforce documentation:
 
 - [Salesforce Metadata API: PermissionSet](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_permissionset.htm)
 - [Salesforce Metadata API: PermissionSetGroup](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_permissionsetgroup.htm)
 
-When adding fields to existing objects, add field permissions to the relevant permission sets.
+When adding fields to existing objects, add field permissions to the relevant permission sets and redeploy them.
 
 ## Configuration Strategy - When to Use What
 
@@ -133,6 +137,7 @@ Project-specific context lives in `docs/` — always check these before making a
 
 - **`docs/architecture.md`** — Project-level architecture: org topology, data model, integrations, and key architectural decisions. Read this first when joining a project or before making cross-cutting changes.
 - **`docs/modules/`** — One file per major module or domain area (e.g., `case-routing.md`, `billing.md`). Describes the module's purpose, key classes, custom objects, automation, and testing notes. Read the relevant module doc before modifying code in that area.
+- **`docs/user-stories/`** — One file per user story (e.g., `US-101-case-auto-routing.md`). Contains the story statement, acceptance criteria, technical notes, and dependencies. Read the relevant story file before starting implementation work.
 
 **Keeping docs current**: When you make a significant change — new module, new integration, architectural decision — update the relevant doc. If a module doc doesn't exist yet for the area you're working in, create one.
 

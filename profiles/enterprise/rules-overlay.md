@@ -94,7 +94,8 @@ For every new SObject or feature, create all layers:
 3. **Service** class (with interface) for business operations
 4. **Register** all classes in `Application.cls`
 5. **Trigger** using `fflib_SObjectDomain.triggerHandler()`
-6. **Tests** using `fflib_ApexMocks` for layer isolation
+6. **Permission set** granting CRUD and field access — add to Admin PSG and assign to running user (see base rules "Creating Custom Objects and Fields")
+7. **Tests** using `fflib_ApexMocks` for layer isolation
 
 For every new Custom Metadata Type, create a config selector:
 1. **Selector** class extending `fflib_SObjectSelector` with `getAll()` caching

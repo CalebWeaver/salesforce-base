@@ -404,8 +404,9 @@ scaffold_docs() {
 
     local docs_dir="$TARGET_DIR/docs"
     local modules_dir="$docs_dir/modules"
+    local stories_dir="$docs_dir/user-stories"
 
-    mkdir -p "$modules_dir"
+    mkdir -p "$modules_dir" "$stories_dir"
 
     # Copy architecture template if it doesn't already exist
     if [ ! -f "$docs_dir/architecture.md" ]; then
@@ -421,6 +422,14 @@ scaffold_docs() {
         print_done "Created docs/modules/README.md"
     else
         print_info "docs/modules/README.md already exists — skipping"
+    fi
+
+    # Copy user stories README if it doesn't already exist
+    if [ ! -f "$stories_dir/README.md" ]; then
+        cp "$ROOT_DIR/templates/docs/user-stories/README.md" "$stories_dir/README.md"
+        print_done "Created docs/user-stories/README.md"
+    else
+        print_info "docs/user-stories/README.md already exists — skipping"
     fi
 }
 

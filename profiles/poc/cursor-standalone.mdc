@@ -17,7 +17,7 @@ alwaysApply: true
 - **No `with sharing` requirement** — use `without sharing` freely, scratch orgs have one user
 - **No `WITH SECURITY_ENFORCED`** — skip it, causes permission errors in unconfigured scratch orgs
 - **No SecurityEnforcer** — skip entirely
-- **No permission sets** — assign permissions directly in scratch org
+- **One catch-all permission set** — create a single perm set for the project, add CRUD + field access for all custom objects/fields, assign to running user (`sf org assign permset`). Skip PSGs and per-object perm sets.
 - **No tests** — deploy with `--test-level NoTestRun`
 - **No triggers unless needed** — skip if the demo is UI-only
 - **Hardcoded config is OK** — extract to CMDT/Labels only for demo-visible values

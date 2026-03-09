@@ -77,6 +77,7 @@ The manifest's `templates.copy` array lists exactly which files/directories to c
 
 - `templates/docs/architecture.md` — Template with commented sections for project overview, org topology, data model, integrations, and architectural decisions
 - `templates/docs/modules/README.md` — Instructions and an example for per-module documentation files
+- `templates/docs/user-stories/README.md` — Instructions and an example for per-story files with acceptance criteria, technical notes, and dependencies
 
 The init script copies these into `docs/` in the target project. The rules files (both base and POC standalone) include a "Project Documentation" section pointing agents to `docs/` and reminders to keep docs current.
 

@@ -18,7 +18,10 @@ Everything else bends toward speed:
 - **`with sharing` / `without sharing`** — use whichever gets the demo working. Default to `without sharing` if sharing enforcement causes confusing "insufficient access" errors.
 - **`WITH SECURITY_ENFORCED`** — skip it. Causes cryptic errors when permissions aren't configured.
 - **SecurityEnforcer** — skip entirely
-- **Permission sets** — skip. Assign permissions directly in the scratch org or use a single admin profile.
+- **Permission sets** — keep it minimal. Create a single permission set for the project (e.g., `FR_Access`) and add object CRUD + field access there whenever you create new objects or fields. Assign it to the running user after deploy so fields are visible. Skip PSGs, skip per-object perm sets — one catch-all is fine for POC.
+```bash
+sf org assign permset --name <PermSetApiName>
+```
 - **Triggers** — only create them if the demo needs backend automation. If you're just showing a UI, skip triggers entirely.
 - **Tests** — skip entirely. Deploy with `--test-level NoTestRun`.
 - **Configuration strategy** — hardcode everything. Extract to CMDT/Labels only for values the demo audience will see or need to change.
@@ -92,6 +95,7 @@ Project-specific context lives in `docs/`. Check these before working in an unfa
 
 - **`docs/architecture.md`** — Project overview, data model, integrations, key decisions
 - **`docs/modules/`** — One file per module describing purpose, key classes, and objects
+- **`docs/user-stories/`** — One file per user story with acceptance criteria and technical notes
 
 Keep docs lightweight for POCs — a few sentences per section is fine. The goal is enough context that an agent (or another developer) can pick up where you left off.
 
@@ -106,9 +110,10 @@ Keep docs lightweight for POCs — a few sentences per section is fine. The goal
 7. **Deploy with NoTestRun** - POCs don't need tests for scratch org deployment
 8. **Retrieve before modify** - Always get current state before making changes
 9. **Skip security enforcement** - No `WITH SECURITY_ENFORCED`, no `SecurityEnforcer`, no `with sharing` requirements
-10. **Static resources for mock data** - If the demo is UI-only, skip Apex and use static JSON
-11. **Read pattern files before implementing** - Check `references/patterns/poc/` for examples before writing code
-12. **Check project docs** - Read `docs/architecture.md` before working in an unfamiliar area
+10. **Update the project permission set** - When creating objects or fields, add CRUD and field access to the project's catch-all permission set and assign it to the running user
+11. **Static resources for mock data** - If the demo is UI-only, skip Apex and use static JSON
+12. **Read pattern files before implementing** - Check `references/patterns/poc/` for examples before writing code
+13. **Check project docs** - Read `docs/architecture.md` before working in an unfamiliar area
 
 ## Promotion Checklist
 
@@ -117,7 +122,7 @@ When a POC gets approved for development, use this checklist to identify what ne
 - [ ] **Add `with sharing`** — review every class and set appropriate sharing context
 - [ ] **Add `WITH SECURITY_ENFORCED`** — add to all SOQL queries
 - [ ] **Add SecurityEnforcer** — replace bare DML with CRUD/FLS checks
-- [ ] **Create permission sets** — one per custom object, add to Admin PSG
+- [ ] **Split permission sets** — break the catch-all POC perm set into one per custom object, add to Admin PSG
 - [ ] **Write tests** — POC likely has zero coverage; write positive-path tests for every class first
 - [ ] **Add bulk tests** — 200+ records through every trigger path
 - [ ] **Add negative tests** — invalid data, missing required fields, permission errors
