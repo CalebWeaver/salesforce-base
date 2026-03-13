@@ -125,6 +125,26 @@ For detailed patterns and examples, see `references/async-patterns.md`.
 
 For detailed patterns and examples, see `references/lwc-patterns.md`.
 
+## Experience Cloud (Digital Experiences)
+
+Experience Cloud metadata is among the most complex in Salesforce — deployment order matters, ExperienceBundles are large and conflict-prone, and guest user configuration requires coordinating profiles, sharing rules, and permission sets. Always retrieve before modifying, and always read the pattern files before deploying.
+
+| Rule | Details |
+|------|---------|
+| **Deploy order** | Network + CustomSite must deploy before ExperienceBundle. Full source deploys handle ordering automatically. |
+| **Guest user profile** | Auto-named `{Site Label} Profile`. Add object permissions, field-level security, and Apex class access for guest-facing controllers. |
+| **Guest user limits** | Guest license only allows Create + Read — no Edit, Delete, View All. Field perms must be `editable: false`. Use `without sharing` Apex for DML. |
+| **Sharing for guests** | Guest users belong to `{SiteApiName}_Site_Guest_User` public group. Create criteria-based sharing rules to expose records. |
+| **LWR guest access** | Site-level `authenticationType` can't be changed via deploy. Set `"pageAccess": "Public"` on individual route `content.json` files instead. |
+| **ExperienceBundle noise** | Add `**/experiences/**/config/**` to `.forceignore` to avoid constant diffs from auto-generated files. |
+| **LWR vs Aura metadata** | LWR (Build Your Own) sites use `DigitalExperienceBundle` and `digitalExperiences/` directory. Aura sites use `ExperienceBundle` and `experiences/`. |
+| **Retrieve by name** | Use `--metadata ExperienceBundle:SiteName` or `--metadata DigitalExperienceBundle`, not source tracking — source tracking is unreliable for experience bundles. |
+| **Publish after deploy** | Run `sf community publish --name "Site Name"` after deploying to make changes live. |
+
+See `references/patterns/base/experience-cloud-metadata.md` for deployment patterns, metadata structure, LWR site setup, and common errors.
+
+See `references/experience-cloud-patterns.md` for LWC exposure, guest user Apex controllers, and community navigation patterns.
+
 ## Error Handling
 
 Use `Database.insert(records, false)` for partial success and iterate `Database.SaveResult` for errors. Use `System.debug()` with appropriate `LoggingLevel` for basic logging. See profile-specific rules for enterprise logging options.
@@ -165,3 +185,4 @@ When starting a new project, check references for established patterns before cr
 12. **Read pattern files before implementing** - Check `references/patterns/` for the implementation pattern before writing code
 13. **Check project docs first** - Read `docs/architecture.md` and the relevant `docs/modules/` file before working in an unfamiliar area
 14. **Update docs when making significant changes** - New modules, integrations, or architectural decisions should be documented in `docs/`
+15. **Experience Cloud metadata has strict deployment order** - Read `references/patterns/base/experience-cloud-metadata.md` before modifying site configuration, guest user profiles, or ExperienceBundles

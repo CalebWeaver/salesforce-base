@@ -49,6 +49,15 @@ Prefix POC classes with a short project tag (e.g., `FR_CaseController`) for easy
 sf project deploy start --source-dir force-app --test-level NoTestRun
 ```
 
+## Experience Cloud (Quick Setup)
+
+- **Scratch org**: Add `"Communities"` to features and `"experienceBundle": { "enableExperienceBundleMetadata": true }` to settings in scratch def.
+- **Create site**: `sf community create --name "Demo Portal" --template-name "Build Your Own (LWR)" --url-path-prefix demo`
+- **Publish**: `sf community publish --name "Demo Portal"` — required to make the site accessible.
+- **Guest access**: Assign permissions directly on guest user profile via Setup → Public Access Settings. Add `classAccesses` for `@AuraEnabled` controllers.
+- **LWC exposure**: Add `lightning__CommunityPage` to `targets` in `.js-meta.xml`.
+- See `references/patterns/poc/experience-cloud-metadata.md` for full setup guide.
+
 ## AI Agent Reminders
 
 1. LWC first — build UI before Apex, use `lightning-record-*-form` before custom components

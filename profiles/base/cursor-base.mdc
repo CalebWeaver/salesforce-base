@@ -103,6 +103,18 @@ Never hardcode configurable values. Use the right mechanism:
 Never hardcode: URLs, endpoints, thresholds, error messages, picklist values in branching logic.
 See profile-specific rules for configuration access patterns.
 
+## Experience Cloud (Digital Experiences)
+
+- **Deploy order**: Network + CustomSite first, then ExperienceBundle. Full source deploys handle this automatically.
+- **LWR vs Aura**: LWR (Build Your Own) sites use `DigitalExperienceBundle` and `digitalExperiences/` directory. Aura sites use `ExperienceBundle` and `experiences/`.
+- **Retrieve by name**: `--metadata ExperienceBundle:SiteName` or `--metadata DigitalExperienceBundle` — source tracking is unreliable for experience bundles.
+- **Guest user profile**: Named `{Site Label} Profile`. Add object/field permissions and `classAccesses` for `@AuraEnabled` controllers. Guest license only allows Create + Read — no Edit/Delete. Field perms must be `editable: false`.
+- **LWR guest access**: Site-level `authenticationType` can't be changed via deploy. Set `"pageAccess": "Public"` on individual route `content.json` files.
+- **Guest sharing**: Create criteria-based sharing rules targeting the `{SiteApiName}_Site_Guest_User` public group.
+- **`.forceignore`**: Add `**/experiences/**/config/**` to avoid auto-generated diffs.
+- **Publish**: `sf community publish --name "Site Name"` after deploy.
+- See `references/patterns/base/experience-cloud-metadata.md` and `references/experience-cloud-patterns.md` for full patterns.
+
 ## AI Agent Reminders
 
 1. Never hardcode Salesforce IDs

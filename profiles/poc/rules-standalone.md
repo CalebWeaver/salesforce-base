@@ -79,6 +79,46 @@ sf project deploy start --source-dir force-app --dry-run --test-level NoTestRun
 sf project deploy start --source-dir force-app --test-level NoTestRun
 ```
 
+## Experience Cloud (Quick Site Setup)
+
+For POCs that include an Experience Cloud site, use the CLI to create and configure quickly. Skip granular permissions — use the catch-all POC permission set.
+
+### Scratch Org Feature Flags
+
+Add these to `config/project-scratch-def.json`:
+```json
+{
+  "features": ["Communities", "Sites"],
+  "settings": {
+    "experienceBundle": { "enableExperienceBundleMetadata": true },
+    "communities": { "enableNetworkSettings": true }
+  }
+}
+```
+
+### Quick Site Creation
+
+```bash
+# Create a site
+sf community create --name "Demo Portal" --template-name "Build Your Own (LWR)" --url-path-prefix demo
+
+# Publish it
+sf community publish --name "Demo Portal"
+
+# Open it
+sf org open --path /demo/s/
+```
+
+### Guest User Access
+
+Assign the POC permission set to the guest user profile directly. In Setup: **Digital Experiences → All Sites → Workspaces → Administration → Pages → Go to Force.com → Public Access Settings**. Add read access for objects guest users need to see. Add `classAccesses` for any `@AuraEnabled` controllers.
+
+### LWC Exposure
+
+Add `lightning__CommunityPage` to the `targets` in `.js-meta.xml` for any LWC that should appear in Experience Builder.
+
+See `references/patterns/poc/experience-cloud-metadata.md` for scratch org setup, deployment, and common pitfalls.
+
 ## Demo Data Setup
 
 Use anonymous Apex scripts to seed demo data. Don't build data factories — just create what you need.
@@ -114,6 +154,7 @@ Keep docs lightweight for POCs — a few sentences per section is fine. The goal
 11. **Static resources for mock data** - If the demo is UI-only, skip Apex and use static JSON
 12. **Read pattern files before implementing** - Check `references/patterns/poc/` for examples before writing code
 13. **Check project docs** - Read `docs/architecture.md` before working in an unfamiliar area
+14. **Enable Communities in scratch org definition** - Add `"Communities"` to features and `enableExperienceBundleMetadata` to settings before creating Experience Cloud sites
 
 ## Promotion Checklist
 
@@ -133,3 +174,4 @@ When a POC gets approved for development, use this checklist to identify what ne
 - [ ] **Remove POC prefix** — rename `FR_RoutingEngine` → `RoutingEngine` (or keep if namespacing helps)
 - [ ] **Add logging** — decide on `System.debug` vs NebulaLogger based on target profile
 - [ ] **Replace demo data scripts** — convert anonymous Apex seeds to proper test data framework
+- [ ] **Harden guest user access** — replace catch-all POC permission set on guest profile with granular per-object perm sets and criteria-based sharing rules
