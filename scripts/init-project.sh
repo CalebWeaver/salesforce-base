@@ -408,6 +408,14 @@ scaffold_docs() {
 
     mkdir -p "$modules_dir" "$stories_dir"
 
+    # Copy project reference if it doesn't already exist
+    if [ ! -f "$docs_dir/project-reference.md" ]; then
+        cp "$ROOT_DIR/templates/docs/project-reference.md" "$docs_dir/project-reference.md"
+        print_done "Created docs/project-reference.md"
+    else
+        print_info "docs/project-reference.md already exists — skipping"
+    fi
+
     # Copy architecture template if it doesn't already exist
     if [ ! -f "$docs_dir/architecture.md" ]; then
         cp "$ROOT_DIR/templates/docs/architecture.md" "$docs_dir/architecture.md"

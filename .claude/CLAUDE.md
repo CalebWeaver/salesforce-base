@@ -75,6 +75,7 @@ The manifest's `templates.copy` array lists exactly which files/directories to c
 
 `templates/docs/` contains starter documentation that gets scaffolded into every target project's `docs/` directory:
 
+- `templates/docs/project-reference.md` — Always-loaded project reference for org-specific conventions, lessons learned, and context that agents need in every session
 - `templates/docs/architecture.md` — Template with commented sections for project overview, org topology, data model, integrations, and architectural decisions
 - `templates/docs/modules/README.md` — Instructions and an example for per-module documentation files
 - `templates/docs/user-stories/README.md` — Instructions and an example for per-story files with acceptance criteria, technical notes, and dependencies

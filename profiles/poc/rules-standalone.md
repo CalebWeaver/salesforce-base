@@ -133,6 +133,7 @@ Prefix POC-specific classes with a short project tag (e.g., `FR_RoutingEngine`, 
 
 Project-specific context lives in `docs/`. Check these before working in an unfamiliar area.
 
+- **`docs/project-reference.md`** — **Always read this file at the start of every task.** Project-specific conventions, lessons learned, and context — org quirks, team decisions, hard-won knowledge.
 - **`docs/architecture.md`** — Project overview, data model, integrations, key decisions
 - **`docs/modules/`** — One file per module describing purpose, key classes, and objects
 - **`docs/user-stories/`** — One file per user story with acceptance criteria and technical notes

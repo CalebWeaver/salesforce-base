@@ -155,6 +155,7 @@ See `references/patterns/base/error-handling.md` for code examples.
 
 Project-specific context lives in `docs/` — always check these before making architectural decisions or working in an unfamiliar area of the codebase.
 
+- **`docs/project-reference.md`** — **Always read this file at the start of every task.** Contains project-specific conventions, lessons learned, and context that supplements the baseline rules. This is the place for org-specific quirks, team decisions, and hard-won knowledge that doesn't belong in the baseline.
 - **`docs/architecture.md`** — Project-level architecture: org topology, data model, integrations, and key architectural decisions. Read this first when joining a project or before making cross-cutting changes.
 - **`docs/modules/`** — One file per major module or domain area (e.g., `case-routing.md`, `billing.md`). Describes the module's purpose, key classes, custom objects, automation, and testing notes. Read the relevant module doc before modifying code in that area.
 - **`docs/user-stories/`** — One file per user story (e.g., `US-101-case-auto-routing.md`). Contains the story statement, acceptance criteria, technical notes, and dependencies. Read the relevant story file before starting implementation work.
