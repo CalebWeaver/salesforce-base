@@ -237,6 +237,15 @@ assemble_claude_md() {
     fi
 
     print_done "Created $output_file"
+
+    # Copy Claude slash commands (skills) into .claude/commands/
+    local commands_src="$TEMPLATES_DIR/.claude/commands"
+    local commands_dest="$output_dir/commands"
+    if [ -d "$commands_src" ]; then
+        mkdir -p "$commands_dest"
+        cp "$commands_src"/*.md "$commands_dest/" 2>/dev/null || true
+        print_done "Copied Claude commands to .claude/commands/"
+    fi
 }
 
 # ─── Assemble Cursor rules ──────────────────────────────────────

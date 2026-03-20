@@ -43,6 +43,9 @@ coverage/
 dist/
 build/
 
+# Agent workflow state
+.workflow-state
+
 # Environment
 .env
 .env.local
