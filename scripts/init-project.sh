@@ -238,13 +238,13 @@ assemble_claude_md() {
 
     print_done "Created $output_file"
 
-    # Copy Claude slash commands (skills) into .claude/commands/
-    local commands_src="$TEMPLATES_DIR/.claude/commands"
-    local commands_dest="$output_dir/commands"
-    if [ -d "$commands_src" ]; then
-        mkdir -p "$commands_dest"
-        cp "$commands_src"/*.md "$commands_dest/" 2>/dev/null || true
-        print_done "Copied Claude commands to .claude/commands/"
+    # Copy Claude skills into .claude/skills/
+    local skills_src="$TEMPLATES_DIR/.claude/skills"
+    local skills_dest="$output_dir/skills"
+    if [ -d "$skills_src" ]; then
+        cp -r "$skills_src/." "$skills_dest/"
+        print_done "Copied Claude skills to .claude/skills/"
+        print_info "To activate skills, copy .claude/skills/* to ~/.claude/skills/"
     fi
 }
 
