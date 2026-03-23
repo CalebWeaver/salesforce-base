@@ -1,6 +1,6 @@
 # Reference Repositories
 
-This folder contains cloned git repositories used as reference structures for new projects.
+This folder contains cloned git repositories used as reference structures for new projects. Implementation patterns and code examples live in profile skills (`profiles/*/skills/`), not here.
 
 ## Setup
 

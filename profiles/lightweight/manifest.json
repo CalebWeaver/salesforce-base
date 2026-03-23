@@ -22,12 +22,14 @@
     "required": ["UniversalMock"],
     "optional": []
   },
-  "rules": {
-    "base": "profiles/base/rules-base.md",
-    "overlay": "profiles/lightweight/rules-overlay.md"
+  "claude": {
+    "template": "profiles/lightweight/claude.md"
   },
-  "cursorRules": {
-    "base": "profiles/base/cursor-base.mdc",
-    "overlay": "profiles/lightweight/cursor-overlay.mdc"
+  "skills": {
+    "base": "profiles/base/skills",
+    "profile": "profiles/lightweight/skills"
+  },
+  "agents": {
+    "profile": "profiles/lightweight/agents"
   }
 }

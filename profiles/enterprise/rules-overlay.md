@@ -7,7 +7,7 @@ This project uses **FFLib Apex Common** for enterprise separation of concerns. A
 
 All code follows the layered architecture: Trigger → Domain → Service → Selector, with an Application factory managing dependency injection.
 
-See `references/patterns/enterprise/fflib-architecture.md` for full implementation examples of each layer (Domain, Service, Selector, Application factory, LWC controllers).
+Invoke `/fflib-architecture` for full implementation examples of each layer (Domain, Service, Selector, Application factory, LWC controllers).
 
 ### Layer Responsibilities
 
@@ -30,7 +30,7 @@ See `references/patterns/enterprise/fflib-architecture.md` for full implementati
 
 This project uses [NebulaLogger](https://github.com/jongpie/NebulaLogger) for enterprise logging instead of `System.debug()`. Install via `references/repos.json` package commands.
 
-See `references/patterns/enterprise/nebula-logger.md` for usage examples.
+Invoke `/nebula-logger` for usage examples.
 
 ## FFLib References
 
@@ -58,23 +58,23 @@ static void setup() {
 }
 ```
 
-Scenario fixtures should also use UoW internally. See `references/patterns/enterprise/fflib-testing.md` for full test examples.
+Scenario fixtures should also use UoW internally. Invoke `/fflib-testing` for full test examples.
 
 ## Async in Enterprise Projects
 
-Async classes delegate to Service methods and use Unit of Work for DML — they don't query or DML directly. Enqueue from Service methods or Domain classes, never from Selectors. See `references/async-patterns.md` for full examples.
+Async classes delegate to Service methods and use Unit of Work for DML — they don't query or DML directly. Enqueue from Service methods or Domain classes, never from Selectors. Invoke `/build-async` for full examples.
 
 ## Configuration Access (FFLib-Integrated)
 
 All Custom Metadata Type access goes through dedicated Selectors registered in `Application.cls`, keeping configuration reads mockable and testable. Template: `AppConfigSelector.cls` in `templates/salesforce/classes/enterprise/`.
 
-See `references/patterns/enterprise/config-selector.md` for implementation, registration, consumption, and test mocking examples.
+Invoke `/fflib-architecture` for config selector implementation, registration, consumption, and test mocking examples.
 
 ## LWC in Enterprise Projects
 
 LWC controllers are thin wrappers that delegate to Service and Selector layers — no business logic in controllers. Read operations call Selectors directly (cacheable). Write operations call Service methods.
 
-See `references/patterns/enterprise/fflib-architecture.md` for controller examples and `references/lwc-patterns.md` for full LWC component patterns.
+Invoke `/fflib-architecture` for controller examples and `/build-lwc` for full LWC component patterns.
 
 ## What NOT to Do
 

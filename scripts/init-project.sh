@@ -1,6 +1,6 @@
 #!/bin/bash
 # Initialize a new Salesforce project from the baseline template.
-# Assembles AI agent rules (CLAUDE.md + Cursor) and copies templates
+# Assembles CLAUDE.md (behavior instruction + standards) and copies templates
 # based on the selected profile.
 
 set -e
@@ -208,68 +208,65 @@ assemble_claude_md() {
 
     mkdir -p "$output_dir"
 
-    # Check if this profile uses a standalone rules file (no composition)
-    local standalone_rules=$(jq -r '.rules.standalone // empty' "$manifest" 2>/dev/null)
-
-    if [ -n "$standalone_rules" ]; then
-        # Standalone profile — copy directly, no composition
-        cp "$ROOT_DIR/$standalone_rules" "$output_file"
+    # Start with the behavior instruction preamble
+    local template=$(jq -r '.claude.template // empty' "$manifest" 2>/dev/null)
+    if [ -n "$template" ] && [ -f "$ROOT_DIR/$template" ]; then
+        cp "$ROOT_DIR/$template" "$output_file"
     else
-        # Composed profile — base + overlay
-        local base_rules="$PROFILES_DIR/base/rules-base.md"
-        local overlay_rules="$PROFILES_DIR/$PROFILE/rules-overlay.md"
+        print_warn "No claude.template found in manifest — CLAUDE.md not created"
+        return 1
+    fi
 
-        cp "$base_rules" "$output_file"
-
-        if [ -f "$overlay_rules" ]; then
-            echo "" >> "$output_file"
-            echo "# ─── Profile-Specific Patterns ───────────────────────────────" >> "$output_file"
-            cat "$overlay_rules" >> "$output_file"
-        fi
-
-        # Profile-specific notes
-        if [ "$PROFILE" = "lightweight" ]; then
-            echo "" >> "$output_file"
-            echo "## Logging Note" >> "$output_file"
-            echo "" >> "$output_file"
-            echo "NebulaLogger is **not included** in this project profile. Use \`System.debug()\` for logging. If the project grows and you need enterprise logging, consider switching to the enterprise profile or manually adding NebulaLogger." >> "$output_file"
-        fi
+    # Append standards: base rules + optional profile overlay
+    echo "" >> "$output_file"
+    cat "$PROFILES_DIR/base/rules-base.md" >> "$output_file"
+    local overlay="$PROFILES_DIR/$PROFILE/rules-overlay.md"
+    if [ -f "$overlay" ]; then
+        echo "" >> "$output_file"
+        cat "$overlay" >> "$output_file"
     fi
 
     print_done "Created $output_file"
 }
 
-# ─── Assemble Cursor rules ──────────────────────────────────────
-assemble_cursor_rules() {
-    print_step "Assembling Cursor rules"
+# ─── Copy skills ─────────────────────────────────────────────────
+copy_skills() {
+    print_step "Copying skills"
 
-    local output_dir="$TARGET_DIR/.cursor/rules"
-    local output_file="$output_dir/salesforce-development.mdc"
+    local output_dir="$TARGET_DIR/.claude/skills"
     local manifest="$PROFILES_DIR/$PROFILE/manifest.json"
 
     mkdir -p "$output_dir"
 
-    # Check if this profile uses a standalone cursor rules file (no composition)
-    local standalone_cursor=$(jq -r '.cursorRules.standalone // empty' "$manifest" 2>/dev/null)
-
-    if [ -n "$standalone_cursor" ]; then
-        # Standalone profile — copy directly, no composition
-        cp "$ROOT_DIR/$standalone_cursor" "$output_file"
-    else
-        # Composed profile — base + overlay
-        local base_cursor="$PROFILES_DIR/base/cursor-base.mdc"
-        local overlay_cursor="$PROFILES_DIR/$PROFILE/cursor-overlay.mdc"
-
-        cp "$base_cursor" "$output_file"
-
-        if [ -f "$overlay_cursor" ]; then
-            echo "" >> "$output_file"
-            # Strip YAML frontmatter from overlay before appending
-            sed -n '/^---$/,/^---$/!p' "$overlay_cursor" >> "$output_file"
-        fi
+    # Copy base skills first (composed profiles only)
+    local base_skills_dir=$(jq -r '.skills.base // empty' "$manifest" 2>/dev/null)
+    if [ -n "$base_skills_dir" ] && [ -d "$ROOT_DIR/$base_skills_dir" ]; then
+        cp -r "$ROOT_DIR/$base_skills_dir/"* "$output_dir/"
+        print_done "Copied base skills"
     fi
 
-    print_done "Created $output_file"
+    # Copy profile skills (overwrites base if same name)
+    local profile_skills_dir=$(jq -r '.skills.profile // empty' "$manifest" 2>/dev/null)
+    if [ -n "$profile_skills_dir" ] && [ -d "$ROOT_DIR/$profile_skills_dir" ]; then
+        cp -r "$ROOT_DIR/$profile_skills_dir/"* "$output_dir/"
+        print_done "Copied $PROFILE skills"
+    fi
+}
+
+# ─── Copy agents ─────────────────────────────────────────────────
+copy_agents() {
+    print_step "Copying agents"
+
+    local output_dir="$TARGET_DIR/.claude/agents"
+    local manifest="$PROFILES_DIR/$PROFILE/manifest.json"
+
+    mkdir -p "$output_dir"
+
+    local profile_agents_dir=$(jq -r '.agents.profile // empty' "$manifest" 2>/dev/null)
+    if [ -n "$profile_agents_dir" ] && [ -d "$ROOT_DIR/$profile_agents_dir" ]; then
+        cp -r "$ROOT_DIR/$profile_agents_dir/"* "$output_dir/"
+        print_done "Copied $PROFILE agents"
+    fi
 }
 
 # ─── Copy templates ──────────────────────────────────────────────
@@ -345,40 +342,6 @@ setup_references() {
         print_done "Copied references .gitignore"
     fi
 
-    # Copy shared reference docs (async-patterns, lwc-patterns, etc.)
-    for ref_file in "$ROOT_DIR"/references/*.md; do
-        local basename=$(basename "$ref_file")
-        if [ "$basename" != "README.md" ]; then
-            cp "$ref_file" "$refs_dest/$basename"
-            print_done "Copied $basename"
-        fi
-    done
-
-    # Copy pattern files based on profile
-    local standalone_rules=$(jq -r '.rules.standalone // empty' "$manifest" 2>/dev/null)
-    local patterns_src="$ROOT_DIR/references/patterns"
-    local patterns_dest="$refs_dest/patterns"
-
-    if [ -n "$standalone_rules" ]; then
-        # Standalone profile — only copy its own pattern directory
-        if [ -d "$patterns_src/$PROFILE" ]; then
-            mkdir -p "$patterns_dest/$PROFILE"
-            cp -r "$patterns_src/$PROFILE/"* "$patterns_dest/$PROFILE/"
-            print_done "Copied patterns/$PROFILE/"
-        fi
-    else
-        # Composed profile — copy base patterns + profile-specific patterns
-        if [ -d "$patterns_src/base" ]; then
-            mkdir -p "$patterns_dest/base"
-            cp -r "$patterns_src/base/"* "$patterns_dest/base/"
-            print_done "Copied patterns/base/"
-        fi
-        if [ -d "$patterns_src/$PROFILE" ]; then
-            mkdir -p "$patterns_dest/$PROFILE"
-            cp -r "$patterns_src/$PROFILE/"* "$patterns_dest/$PROFILE/"
-            print_done "Copied patterns/$PROFILE/"
-        fi
-    fi
 }
 
 # ─── Copy scripts ────────────────────────────────────────────────
@@ -538,6 +501,8 @@ main() {
                 # Default target: sibling directory of baseline repo
                 if [ -z "$TARGET_DIR" ]; then
                     TARGET_DIR="$(dirname "$ROOT_DIR")/$PROJECT_NAME"
+                else
+                    TARGET_DIR="$TARGET_DIR/$PROJECT_NAME"
                 fi
                 ;;
             --help|-h)
@@ -581,7 +546,8 @@ main() {
     # Execute
     scaffold_sfdx_project
     assemble_claude_md
-    assemble_cursor_rules
+    copy_skills
+    copy_agents
     copy_templates
     setup_references
     copy_scripts

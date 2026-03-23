@@ -2,7 +2,6 @@
   "profile": "poc",
   "displayName": "POC / Demo",
   "description": "Minimal structure for proofs of concept and demos. Uses TriggerHandler only — no SecurityEnforcer, no test data framework, no logging framework. Includes a promotion checklist for hardening into a real project.",
-  "standalone": true,
   "templates": {
     "copy": [
       "templates/salesforce/classes/TriggerHandler.cls",
@@ -13,10 +12,13 @@
     "required": [],
     "optional": ["UniversalMock"]
   },
-  "rules": {
-    "standalone": "profiles/poc/rules-standalone.md"
+  "claude": {
+    "template": "profiles/poc/claude.md"
   },
-  "cursorRules": {
-    "standalone": "profiles/poc/cursor-standalone.mdc"
+  "skills": {
+    "profile": "profiles/poc/skills"
+  },
+  "agents": {
+    "profile": "profiles/poc/agents"
   }
 }

@@ -1,6 +1,6 @@
 # Salesforce Development Baseline
 
-A baseline configuration for Salesforce development projects with AI agent guidance (Claude + Cursor), reusable templates, and reference repositories. Supports two project profiles to match your project's complexity.
+A baseline for Salesforce development projects with Claude Code AI guidance, reusable templates, and reference repositories. Supports three profiles to match your project's complexity.
 
 ## Quick Start
 
@@ -9,22 +9,29 @@ A baseline configuration for Salesforce development projects with AI agent guida
 ./scripts/init-project.sh
 
 # Non-interactive
+./scripts/init-project.sh --profile poc --name field-routing-demo
 ./scripts/init-project.sh --profile lightweight --name client-portal
 ./scripts/init-project.sh --profile enterprise --name crm-overhaul --target ~/projects/crm-overhaul
 ```
 
-The init script scaffolds an SFDX project (`sf project generate`), then assembles the right CLAUDE.md, Cursor rules, templates, and reference configs based on your chosen profile. Requires Salesforce CLI (`sf`) for project scaffolding — if not installed, it skips that step and tells you the command to run manually.
+The init script scaffolds an SFDX project (`sf project generate`), assembles CLAUDE.md with the full development standards, copies skills and agents, and drops in the right templates and reference configs for the chosen profile. Requires Salesforce CLI (`sf`) for project scaffolding — if not installed, it skips that step and tells you the command to run manually.
 
 ## Profiles
 
+### POC / Demo
+Best for proofs of concept, demos, and throwaway explorations.
+
+- `TriggerHandler` only — no SecurityEnforcer, no test data framework
+- No test coverage enforced
+- Includes a promotion checklist for hardening into a real project
+
 ### Lightweight
-Best for small projects, POCs, and quick builds.
+Best for small-to-medium projects that need proper structure without complexity.
 
 - Simple `TriggerHandler` base class (logic directly in handlers)
 - `SecurityEnforcer` for CRUD/FLS
 - Test data framework (builders, fixtures, TestDataGraph)
 - No FFLib, no service/domain/selector layers
-- Flat architecture — extract utility classes only when handlers grow large
 
 ### Enterprise (FFLib)
 Best for large, long-lived projects with multiple developers.
@@ -39,32 +46,37 @@ Best for large, long-lived projects with multiple developers.
 
 ```
 ├── profiles/
-│   ├── base/                          # Shared rules (both profiles)
-│   │   ├── rules-base.md             # Base CLAUDE.md content
-│   │   └── cursor-base.mdc           # Base Cursor rules
+│   ├── base/                          # Shared rules + skills (lightweight + enterprise)
+│   │   ├── rules-base.md             # Shared Salesforce standards
+│   │   └── skills/                   # Skills copied into all composed-profile projects
 │   ├── lightweight/
 │   │   ├── manifest.json             # Template/reference config
-│   │   ├── rules-overlay.md          # Lightweight-specific CLAUDE.md
-│   │   └── cursor-overlay.mdc        # Lightweight-specific Cursor rules
-│   └── enterprise/
-│       ├── manifest.json             # Template/reference config
-│       ├── rules-overlay.md          # FFLib-specific CLAUDE.md
-│       └── cursor-overlay.mdc        # FFLib-specific Cursor rules
+│   │   ├── rules-overlay.md          # Lightweight-specific standards
+│   │   ├── claude.md                 # Behavior instruction preamble
+│   │   ├── skills/                   # trigger-handler skill
+│   │   └── agents/                   # developer, reviewer, experience-cloud-developer
+│   ├── enterprise/
+│   │   ├── manifest.json
+│   │   ├── rules-overlay.md          # FFLib-specific standards
+│   │   ├── claude.md
+│   │   ├── skills/                   # fflib-architecture, fflib-testing, nebula-logger
+│   │   └── agents/
+│   └── poc/
+│       ├── manifest.json
+│       ├── rules-standalone.md       # Self-contained POC standards (no base composition)
+│       ├── claude.md
+│       ├── skills/                   # poc-approach, poc-promotion
+│       └── agents/                   # developer, promoter
 ├── templates/
 │   └── salesforce/classes/
-│       ├── TriggerHandler.cls         # Base trigger handler (lightweight)
-│       ├── SecurityEnforcer.cls       # CRUD/FLS enforcement utility
-│       ├── MockSObjectBuilder.cls     # Mock SObjects without DML
-│       ├── DataAccessor.cls           # Abstract query layer
-│       ├── SecurityEnforcerTest.cls   # Test patterns
+│       ├── TriggerHandler.cls
+│       ├── SecurityEnforcer.cls
+│       ├── MockSObjectBuilder.cls
+│       ├── DataAccessor.cls
+│       ├── SecurityEnforcerTest.cls
 │       ├── testsupport/               # Test data framework
-│       │   ├── TestIds.cls
-│       │   ├── BaseFluentBuilder.cls
-│       │   ├── TestDataGraph.cls
-│       │   ├── builders/
-│       │   └── fixtures/
 │       └── enterprise/                # Enterprise-only templates
-│           └── Application.cls        # FFLib Application factory
+│           └── Application.cls
 ├── references/
 │   ├── repos.json                     # Reference repos with profile tags
 │   └── README.md
@@ -75,14 +87,19 @@ Best for large, long-lived projects with multiple developers.
 
 ## How Profiles Work
 
-The init script assembles your project from composable pieces:
+The init script assembles each project from composable pieces:
 
-1. **CLAUDE.md** = `profiles/base/rules-base.md` + `profiles/{profile}/rules-overlay.md`
-2. **Cursor rules** = `profiles/base/cursor-base.mdc` + `profiles/{profile}/cursor-overlay.mdc`
-3. **Templates** = files listed in `profiles/{profile}/manifest.json`
-4. **References** = repos tagged for the profile in `repos.json`, filtered by your add-on choices
+**Composed profiles** (lightweight, enterprise):
+- `.claude/CLAUDE.md` = `profiles/{profile}/claude.md` + `profiles/base/rules-base.md` + `profiles/{profile}/rules-overlay.md`
+- `.claude/skills/` = base skills + profile skills
+- `.claude/agents/` = profile agents
 
-The assembled files are written to your target directory. The original composable pieces stay in the baseline repo for future use.
+**Standalone profile** (poc):
+- `.claude/CLAUDE.md` = `profiles/poc/claude.md` + `profiles/poc/rules-standalone.md`
+- `.claude/skills/` = poc skills only
+- `.claude/agents/` = poc agents only
+
+Templates and references are always driven by the profile's `manifest.json`.
 
 ## Reference Repositories
 
@@ -91,33 +108,15 @@ Configured in `repos.json` with profile tags:
 | Repo | Profiles | Type | Purpose |
 |------|----------|------|---------|
 | [NebulaLogger](https://github.com/jongpie/NebulaLogger) | Enterprise | Package | Enterprise logging framework |
-| [UniversalMock](https://github.com/surajp/universalmock) | Both | Copy | Apex test mocking utility |
+| [UniversalMock](https://github.com/surajp/universalmock) | Lightweight, POC | Copy | Apex test mocking utility |
 | [fflib-apex-common](https://github.com/apex-enterprise-patterns/fflib-apex-common) | Enterprise | Package | Domain, Selector, Service, UnitOfWork |
 | [fflib-apex-mocks](https://github.com/apex-enterprise-patterns/fflib-apex-mocks) | Enterprise | Package | ApexMocks test framework |
 
-## Templates
-
-### Shared (Both Profiles)
-
-| Template | Purpose |
-|----------|---------|
-| `TriggerHandler.cls` | Base class for trigger handlers with enable/disable support |
-| `SecurityEnforcer.cls` | Utility for CRUD/FLS checks and `stripInaccessible` |
-| `MockSObjectBuilder.cls` | Build mock SObjects with read-only fields and relationships |
-| `DataAccessor.cls` | Base class for abstracting SOQL queries for testability |
-| `testsupport/` | Test data framework (builders, fixtures, TestDataGraph) |
-
-### Enterprise Only
-
-| Template | Purpose |
-|----------|---------|
-| `Application.cls` | FFLib Application factory with UoW, Selector, Domain, Service registration |
-
 ## Adding a New Profile
 
-1. Create `profiles/{name}/manifest.json` with template and reference config
-2. Create `profiles/{name}/rules-overlay.md` with architecture-specific CLAUDE.md content
-3. Create `profiles/{name}/cursor-overlay.mdc` with architecture-specific Cursor rules
+1. Create `profiles/{name}/manifest.json` — set `"standalone": true` if it shouldn't compose from base
+2. Create `rules-overlay.md` (or `rules-standalone.md` for standalone) and `claude.md`
+3. Create `skills/` and `agents/` directories with profile-specific content
 4. Add the profile choice to `scripts/init-project.sh`
 
 ## License

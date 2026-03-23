@@ -9,7 +9,7 @@ Never put logic directly in triggers. One trigger per object, use a shared base 
 
 Check for existing `TriggerHandler` in project. If none exists, copy from `templates/salesforce/classes/TriggerHandler.cls`.
 
-See `references/patterns/lightweight/trigger-handler.md` for implementation examples.
+Invoke `/trigger-handler` for implementation examples.
 
 ## Architecture Guidelines
 
@@ -25,19 +25,19 @@ If you find a handler growing beyond ~200 lines, extract logic into a focused ut
 
 ## Async in Lightweight Projects
 
-Async classes are standalone — they query, process, and DML directly. No service layer routing needed. Enqueue from trigger handlers. See `references/async-patterns.md` for full examples.
+Async classes are standalone — they query, process, and DML directly. No service layer routing needed. Enqueue from trigger handlers. Invoke `/build-async` for full examples.
 
 ## Configuration Access
 
 Query Custom Metadata Types directly in Apex — no accessor class needed for this profile. Cache results in static variables when a method is called multiple times in the same transaction.
 
-See `references/patterns/lightweight/cmdt-access.md` for implementation examples.
+Invoke `/trigger-handler` for CMDT access implementation examples.
 
 ## LWC in Lightweight Projects
 
 LWC controllers are simple Apex classes with `@AuraEnabled` methods — no service layer delegation needed. Business logic can live directly in the controller for small components.
 
-See `references/patterns/lightweight/lwc-controller.md` for implementation examples and `references/lwc-patterns.md` for full LWC component patterns.
+Invoke `/trigger-handler` for LWC controller implementation examples and `/build-lwc` for full LWC component patterns.
 
 ## What NOT to Do
 

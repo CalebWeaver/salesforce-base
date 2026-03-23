@@ -20,12 +20,14 @@
     "required": ["UniversalMock", "fflib-apex-common", "fflib-apex-mocks", "NebulaLogger"],
     "optional": []
   },
-  "rules": {
-    "base": "profiles/base/rules-base.md",
-    "overlay": "profiles/enterprise/rules-overlay.md"
+  "claude": {
+    "template": "profiles/enterprise/claude.md"
   },
-  "cursorRules": {
-    "base": "profiles/base/cursor-base.mdc",
-    "overlay": "profiles/enterprise/cursor-overlay.mdc"
+  "skills": {
+    "base": "profiles/base/skills",
+    "profile": "profiles/enterprise/skills"
+  },
+  "agents": {
+    "profile": "profiles/enterprise/agents"
   }
 }
