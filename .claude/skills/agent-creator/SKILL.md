@@ -108,6 +108,7 @@ Rules:
 - List skills under `skills:` to inject their full content into the agent at startup
 - The agent won't discover or invoke skills on its own — preloading is the only way to give it skill knowledge
 - Prefer preloading over telling the agent to "read the X skill" — more reliable
+- **Strongly prefer keeping knowledge in skills, not in the agent body.** The agent body should be minimal — startup steps, output format, and role framing only. Move any domain knowledge, rules, or patterns into a skill and preload it. This keeps agents reusable and skills composable.
 
 ## Placement in This Repo
 
