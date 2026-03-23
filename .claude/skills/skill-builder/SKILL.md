@@ -1,94 +1,78 @@
 ---
 name: skill-builder
-description: How to create and structure Claude Code skills in this project — SKILL.md format, frontmatter fields, progressive disclosure with reference files, and what belongs where.
+description: How to create and structure Claude Code skills — SKILL.md format, frontmatter fields, progressive disclosure with reference files, and what belongs where.
 ---
+
+## Naming
+Prefer gerund names or noun phrases
+
+## Description
+Especially consise. Fewer than 1000 characters. Include key terms.
+
+## The Filter
+
+Before adding anything to a skill, ask: **Would Claude get this right without being told?** If yes, omit it.
+
+## What Belongs in a Skill
+
+- Project-specific field names, paths, or syntax Claude can't infer
+- Known failure modes: things Claude consistently gets wrong in this domain
+- Non-obvious constraints or counterintuitive decisions
+- Edge cases that contradict Claude's defaults
+
+## Workflow Guidance
+
+- Match instruction specificity to task fragility: give exact steps when consistency is critical and errors are hard to recover from, give general direction when multiple approaches are valid.
+- Use workflows for complex tasks. For highly complex tasks, use a markdown reference file.
+- For complex tasks: Break into numbered steps and give Claude a copy-paste checklist it tracks as it works — this prevents skipping steps and makes progress visible.
+- For quality-critical tasks: Build in a validate → fix → repeat loop. The "validator" can be a script or a reference doc Claude checks against. Only proceed when it passes.
 
 ## Skill Structure
 
-Every skill is a folder containing a `SKILL.md` plus optional subdirectories for reference material:
-
 ```
 my-skill/
-├── SKILL.md          ← Core instructions (concise — under ~500 lines)
-├── references/       ← Detailed docs loaded only when needed
-│   └── patterns.md
-├── scripts/          ← Executable shell/Python scripts
-└── assets/           ← Templates and static files
+├── SKILL.md          ← Loaded when skill is invoked
+├── references/       ← Loaded only when Claude explicitly reads them
+├── scripts/
+└── assets/
 ```
 
-**Progressive disclosure**: At startup, Claude only sees each skill's `name` and `description`. `SKILL.md` is read when the skill is invoked. Files in `references/`, `scripts/`, and `assets/` are read only when Claude explicitly needs them — zero context cost otherwise. This means detailed content belongs in separate files, not embedded in `SKILL.md`.
+**Progressive disclosure**: Claude only sees `name` and `description` at startup. `SKILL.md` loads on invocation. Files in `references/`, `scripts/`, `assets/` load only when Claude reads them — zero context cost otherwise.
+- Keep all reference file links directly in SKILL.md — never chain references file-to-file, as Claude may only partially read chained files.
+- When a reference file is more than 100 lines, use a table of contents at the top.
 
-## SKILL.md Frontmatter
+## Frontmatter Fields
 
 ```yaml
 ---
 name: skill-name                    # kebab-case, matches folder name
-description: One sentence describing what this skill does and when Claude should use it.
-user-invocable: false               # Optional. false = only Claude can invoke (background knowledge)
-disable-model-invocation: true      # Optional. true = only the user can invoke (side-effect workflows)
+description: One sentence — specific and actionable; this is what Claude matches against user intent
+user-invocable: false               # false = only Claude invokes (background knowledge); omit if user-invocable
+disable-model-invocation: true      # true = only user can invoke (side-effect workflows like deploy, commit)
 ---
 ```
 
-- `name` and `description` are always loaded — make `description` specific and actionable
-- Omit optional fields unless needed; most skills only need `name` and `description`
-- Use `disable-model-invocation: true` for skills with side effects (deploy, commit, send messages)
-- Use `user-invocable: false` for background reference skills Claude uses autonomously
+Omit optional fields unless needed. Most skills only need `name` and `description`.
 
-## What Goes Where
-
-| Content | Location |
-|---------|----------|
-| Decision flows, rules, when-to-use tables | `SKILL.md` |
-| Short code snippets (< 20 lines, core pattern) | `SKILL.md` |
-| Long code examples, comprehensive patterns | `references/` file |
-| Bash/Python scripts the skill runs | `scripts/` file |
-| Templates copied into the project | `assets/` file |
-
-Keep `SKILL.md` under ~500 lines. If it's getting long, move code examples to `references/`. Split `references/` into multiple files when patterns are independent — Claude loads each file separately, so finer granularity means less unused context per invocation.
-
-## Where Skills Live in This Repo
+## Where Skills Live
 
 ```
-profiles/base/skills/{name}/     ← Shared across composed profiles
-profiles/{profile}/skills/{name}/
-.claude/skills/{name}/           ← For this baseline repo itself
+profiles/base/skills/{name}/       ← Shared across all profiles
+profiles/{profile}/skills/{name}/  ← Profile-specific
+.claude/skills/{name}/             ← This baseline repo itself
 ```
 
-## Adding a Skill
+## Wiring a Skill
 
-1. Create the folder: `profiles/{base|profile}/skills/{skill-name}/`
-2. Write `SKILL.md` — frontmatter + concise instructions + core patterns
-3. If you have long code examples, put them in `references/patterns.md` and point to them from `SKILL.md`:
+1. Create folder and write `SKILL.md`
+2. Add invocation hint to the relevant rules file:
    ```
-   For full implementation examples, read `references/patterns.md` in this skill.
+   Invoke /skill-name for X.
    ```
-4. Update the relevant rules file with `Invoke /skill-name for X.`
-5. Update agent `.md` files if the skill should be preloaded for a specific agent role
+3. Add to agent `skills:` frontmatter if it should preload for a specific agent role
 
-## Skill Invocation in Rules Files
+Use `Invoke /skill-name` syntax — not file paths.
 
-Point agents to skills from rules files — don't embed the detail in always-loaded rules:
-
-```markdown
-✅ Invoke `/build-async` for detailed patterns and examples.
-❌ See references/patterns/base/async-patterns.md for examples.  ← Old pattern, avoid
-```
-
-## Writing Good Descriptions
-
-The description is what Claude matches against user intent. Be specific:
-
-```yaml
-# Too vague
-description: Async processing patterns.
-
-# Good — Claude knows exactly when to use this
-description: How to implement async processing — when to use job queues vs background workers vs scheduled tasks, and the rules for each.
-```
-
-## Skills vs Agents
-
-- **Skill**: A focused body of knowledge or capability invoked on demand
-- **Agent**: A role that preloads a set of skills and operates with a defined scope
-
-Agent files live in `profiles/{profile}/agents/{name}.md` or `.claude/agents/{name}.md`. The `skills` frontmatter field lists skill names to inject at startup. Keep agent body content minimal — skills carry the detail.
+## References
+[Extend Claude with Skills](https://code.claude.com/docs/en/skills)
+[Skill Authoring Best Practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)
